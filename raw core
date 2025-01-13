@@ -1,0 +1,133 @@
+import tkinter as tk
+from tkinter import messagebox
+import Adafruit_DHT  # Library for DHT22 sensor
+
+# Set up the DHT22 sensor
+DHT_SENSOR = Adafruit_DHT.DHT22
+DHT_PIN = 4  # GPIO pin where the DHT22 is connected
+
+class DHTApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("DHT22 Sensor Display")
+        self.root.geometry("400x300")
+        self.root.config(bg="#FFCC99")  # Set overall background to light orange
+        
+        # Modern button style
+        self.button_style = {'width': 15, 'height': 2, 'font': ('Arial', 12, 'bold'), 'bd': 0, 'bg': '#4CAF50', 'fg': 'white', 'activebackground': '#45a049'}
+        
+        # Initialize a container frame to hold different pages (frames)
+        self.container = tk.Frame(self.root, bg="#FFCC99")  # Light orange background
+        self.container.pack(expand=True, fill="both")
+        
+        # Create the MainPage frame (this will be the first page)
+        self.main_page = MainPage(self.container, self)
+        
+        # Start the app on the main page
+        self.main_page.grid(row=0, column=0, sticky="nsew")
+
+    def show_frame(self, frame_class):
+        """Function to show different frames based on button click."""
+        # Destroy current frame content
+        for widget in self.container.winfo_children():
+            widget.destroy()
+        
+        # Create and show the new frame
+        frame = frame_class(self.container, self)
+        frame.grid(row=0, column=0, sticky="nsew")
+
+class MainPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg="#FFCC99")  # Light orange background
+        
+        self.controller = controller
+        
+        # Label
+        label = tk.Label(self, text="MAIN MENU", font=('Arial', 16, 'bold'), fg="black", bg="#FFCC99")
+        label.pack(pady=20)
+        
+        # Buttons (Center aligned)
+        btn_env_details = tk.Button(self, text="ENV DETAILS", command=self.show_env_details, **controller.button_style)
+        btn_env_details.pack(pady=5, anchor='center')
+        
+        btn_empty = tk.Button(self, text="BUTTON 2 (NO ACTION)", command=self.no_action, **controller.button_style)
+        btn_empty.pack(pady=5, anchor='center')
+        
+        btn_page_4 = tk.Button(self, text="PAGE 4", command=self.show_page_4, **controller.button_style)
+        btn_page_4.pack(pady=5, anchor='center')
+        
+        btn_exit = tk.Button(self, text="EXIT", command=self.exit_app, **controller.button_style)
+        btn_exit.pack(pady=5, anchor='center')
+
+    def show_env_details(self):
+        """Show the environment details in a new frame."""
+        self.controller.show_frame(EnvDetailsPage)
+        
+    def show_page_4(self):
+        """Show another page (can be customized)."""
+        self.controller.show_frame(Page4)
+    
+    def no_action(self):
+        """Button 2 does nothing."""
+        pass
+
+    def exit_app(self):
+        """Exit the application."""
+        self.controller.root.quit()
+
+class EnvDetailsPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg="#FFCC99")  # Light orange background
+        
+        self.controller = controller
+        
+        # Label to display sensor data
+        label = tk.Label(self, text="ENVIRONMENT DETAILS", font=('Arial', 16, 'bold'), fg="black", bg="#FFCC99")
+        label.pack(pady=20)
+        
+        # Read the actual DHT22 sensor data
+        humidity, temperature = self.read_sensor_data()
+        details_label = tk.Label(self, text=f"TEMP: {temperature:.1f}C\nHUMIDITY: {humidity:.1f}%", font=('Arial', 14, 'bold'), fg="black", bg="#FFCC99")
+        details_label.pack(pady=10)
+        
+        # Back button to go to the main menu
+        back_button = tk.Button(self, text="BACK", command=lambda: controller.show_frame(MainPage), **controller.button_style)
+        back_button.pack(pady=10, anchor='center')
+
+    def read_sensor_data(self):
+        """Read data from the DHT22 sensor."""
+        humidity, temperature = Adafruit_DHT.read_retry(DHT_SENSOR, DHT_PIN)
+        
+        # If reading was successful
+        if humidity is not None and temperature is not None:
+            return humidity, temperature
+        else:
+            messagebox.showerror("Error", "Failed to retrieve data from sensor.")
+            return 0.0, 0.0
+
+class Page4(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent, bg="#FFCC99")  # Light orange background
+        
+        self.controller = controller
+        
+        # Label for Page go
+        label = tk.Label(self, text="PAGE 4", font=('Arial', 16, 'bold'), fg="black", bg="#FFCC99")
+        label.pack(pady=20)
+        
+        # Back button
+        back_button = tk.Button(self, text="BACK", command=lambda: controller.show_frame(MainPage), **controller.button_style)
+        back_button.pack(pady=10, anchor='center')
+
+def main():
+    # Create the Tkinter window
+    root = tk.Tk()
+    
+    # Create the DHTApp instance
+    app = DHTApp(root)
+    
+    # Start the Tkinter event loop
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
