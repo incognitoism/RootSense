@@ -8,7 +8,7 @@ root.configure(bg="#fff")
 root.resizable(False, False)
 
 ######################
-img = PhotoImage(file='pagetrunc.png')  # Replace 'your_image_path.png' with your image file path
+img = PhotoImage(file='pagetrunc.png')  
 Label(root, image=img, bg='white').place(x=10, y=10)
 ##################
 
