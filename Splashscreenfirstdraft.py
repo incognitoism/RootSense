@@ -34,10 +34,10 @@ password.insert(0, 'Password')
 Frame(frame, width=295, height=2, bg='black').place(x=25, y=177)
 
 
-def on_login():
+def login_func_reserve_on_push():
     print("Login button clicked")
 
-Button(frame, width=30, pady=5, text='Login', bg='#00b4d8', fg='blue', border=0, command=on_login).place(x=27, y=190)
+Button(frame, width=30, pady=5, text='Login', bg='#00b4d8', fg='blue', border=0, command=login_func_reserve_on_push).place(x=27, y=190)
 
 
 def on_signup():
