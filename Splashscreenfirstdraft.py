@@ -25,7 +25,7 @@ class SensorGridApp:
         self.canvas = tk.Canvas(self.root, width=800, height=600, bg="#2e2e2e", highlightthickness=0)
         self.canvas.pack(pady=20)
 
-        self.nodes = []
+        self.nodes = [] #sambhav check here once , can we change the cross section radius ? -> tinker with the rad selection 
         self.radius = 400
         self.center_x = 400
         self.center_y = 500
