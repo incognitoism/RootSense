@@ -11,7 +11,7 @@ class SensorGridApp:
         self.root.geometry("900x700")
         self.root.configure(bg="#1e1e1e")
 
-        # Database connection
+     
         self.conn = psycopg2.connect(
             dbname="RootsenseODManager",
             user="postgres",
@@ -21,7 +21,7 @@ class SensorGridApp:
         )
         self.cursor = self.conn.cursor()
 
-        # Canvas
+   
         self.canvas = tk.Canvas(self.root, width=800, height=600, bg="#2e2e2e", highlightthickness=0)
         self.canvas.pack(pady=20)
 
@@ -29,11 +29,11 @@ class SensorGridApp:
         self.radius = 400
         self.center_x = 400
         self.center_y = 500
-        self.nodes_per_cross_section = 5  # Number of dots per cross-section
+        self.nodes_per_cross_section = 5  
         self.cross_section_width = 5
         self.node_count = self.calculate_node_count()
 
-        # Controls frame
+      
         controls_frame = tk.Frame(self.root, bg="#1e1e1e")
         controls_frame.pack(fill=tk.X, pady=10)
 
