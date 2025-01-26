@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import messagebox
 import psycopg2
 import random
-from math import cos, sin, radians
 
 class SensorGridApp:
     def __init__(self, root):
@@ -11,7 +10,6 @@ class SensorGridApp:
         self.root.geometry("900x700")
         self.root.configure(bg="#1e1e1e")
 
-     
         self.conn = psycopg2.connect(
             dbname="RootsenseODManager",
             user="postgres",
@@ -21,19 +19,12 @@ class SensorGridApp:
         )
         self.cursor = self.conn.cursor()
 
-   
         self.canvas = tk.Canvas(self.root, width=800, height=600, bg="#2e2e2e", highlightthickness=0)
         self.canvas.pack(pady=20)
 
-        self.nodes = [] #sambhav check here once , can we change the cross section radius ? -> tinker with the rad selection 
-        self.radius = 400
-        self.center_x = 400
-        self.center_y = 500
-        self.nodes_per_cross_section = 5  
-        self.cross_section_width = 5
-        self.node_count = self.calculate_node_count()
+        self.nodes = []
+        self.node_count = 0 
 
-      
         controls_frame = tk.Frame(self.root, bg="#1e1e1e")
         controls_frame.pack(fill=tk.X, pady=10)
 
@@ -49,22 +40,31 @@ class SensorGridApp:
         )
         self.refresh_button.pack(side=tk.RIGHT, padx=10, pady=5)
 
+        self.auto_node_button = tk.Button(
+            controls_frame, text="Auto Node Call", command=self.auto_node_call, bg="#007acc", fg="white",
+            font=("Arial", 12), relief="flat", width=15
+        )
+        self.auto_node_button.pack(side=tk.RIGHT, padx=10, pady=5)
+
         self.logout_button = tk.Button(
             controls_frame, text="Logout", command=self.logout, bg="#ff5e57", fg="white",
             font=("Arial", 12), relief="flat", width=10
         )
         self.logout_button.pack(side=tk.RIGHT, padx=10, pady=5)
 
-    def calculate_node_count(self):
-        return self.cross_section_width * self.nodes_per_cross_section
+        self.node_count_label = tk.Label(
+            controls_frame, text=f"Nodes: {self.node_count}", bg="#1e1e1e", fg="white", font=("Arial", 12)
+        )
+        self.node_count_label.pack(side=tk.LEFT, padx=10, pady=5)
 
-    def draw_node(self, node):
+    def draw_node(self, node, label):
         color = node["status"]
         x, y = node["x"], node["y"]
-        r = 5
+        r = node["radius"]
         node["circle"] = self.canvas.create_oval(
             x - r, y - r, x + r, y + r, fill=color, outline=""
         )
+        self.canvas.create_text(x, y, text=label, fill="white", font=("Arial", 8))
 
     def update_node(self, node, status):
         node["status"] = status
@@ -81,30 +81,101 @@ class SensorGridApp:
             self.update_node(node, status)
 
     def add_node(self):
-        if len(self.nodes) >= self.node_count:
+        rows, cols = 10, 10
+        canvas_width = 800
+        canvas_height = 600
+
+        if len(self.nodes) >= rows * cols:
             messagebox.showinfo("Info", "Maximum number of nodes reached!")
             return
 
-        angle_step = 180 / (self.cross_section_width - 1)
-        cross_section_index = len(self.nodes) // self.cross_section_width
-        node_index = len(self.nodes) % self.cross_section_width
+        spacing = 5
+        cell_width = (canvas_width - (cols - 1) * spacing) / cols
+        cell_height = (canvas_height - (rows - 1) * spacing) / rows
+        radius = min(cell_width, cell_height) / 2
 
-        angle = angle_step * node_index
-        x = self.center_x + self.radius * cos(radians(angle))
-        y = self.center_y - (self.radius * sin(radians(angle)) / self.nodes_per_cross_section * (cross_section_index + 1))
-        
+        node_index = len(self.nodes)
+        row_index = node_index // cols
+        col_index = node_index % cols
+
+        x = col_index * (cell_width + spacing) + cell_width / 2
+        y = row_index * (cell_height + spacing) + cell_height / 2
+
+        label = f"{chr(97 + row_index)}{col_index + 1}"
+
         node = {
             "x": x,
             "y": y,
             "status": "red",
+            "radius": radius,
             "circle": None,
         }
         self.nodes.append(node)
-        self.draw_node(node)
+        self.draw_node(node, label)
+        self.node_count += 1
+        self.node_count_label.config(text=f"Nodes: {self.node_count}")
+
+    def auto_node_call(self):
+        self.auto_node_frame = tk.Frame(self.root, bg="#1e1e1e")
+        self.auto_node_frame.place(x=300, y=300)
+
+        call_max_button = tk.Button(
+            self.auto_node_frame, text="Call Max", command=self.call_max, bg="#007acc", fg="white",
+            font=("Arial", 12), relief="flat", width=15
+        )
+        call_max_button.pack(side=tk.TOP, pady=5)
+
+        call_custom_button = tk.Button(
+            self.auto_node_frame, text="Call Custom", command=self.call_custom, bg="#007acc", fg="white",
+            font=("Arial", 12), relief="flat", width=15
+        )
+        call_custom_button.pack(side=tk.TOP, pady=5)
+
+    def call_max(self):
+        self.node_count = 100  
+        self.auto_node_frame.destroy()  
+        self.call_nodes(self.node_count) 
+
+    def call_custom(self):
+        def submit_custom_count():
+            try:
+                count = int(entry.get())
+                if count <= 0 or count > 100:
+                    raise ValueError("Invalid number")
+                self.auto_node_frame.destroy()  
+                self.node_count = count 
+                self.call_nodes(self.node_count)
+                custom_window.destroy()
+            except ValueError:
+                messagebox.showerror("Error", "Please enter a valid number between 1 and 100.")
+
+        custom_window = tk.Toplevel(self.root)
+        custom_window.title("Custom Node Count")
+        custom_window.geometry("300x150")
+        custom_window.configure(bg="#1e1e1e")
+
+        label = tk.Label(custom_window, text="Enter number of nodes:", bg="#1e1e1e", fg="white", font=("Arial", 12))
+        label.pack(pady=10)
+
+        entry = tk.Entry(custom_window, font=("Arial", 12))
+        entry.pack(pady=10)
+
+        submit_button = tk.Button(
+            custom_window, text="Submit", command=submit_custom_count, bg="#007acc", fg="white",
+            font=("Arial", 12), relief="flat", width=10
+        )
+        submit_button.pack(pady=10)
+
+    def call_nodes(self, count):
+        existing_node_count = len(self.nodes)
+        for i in range(existing_node_count, count):
+            self.add_node()
+
+       
 
     def logout(self):
         self.root.destroy()
-        DashboardApp()
+        LoginApp()
 
 class DashboardApp:
     def __init__(self):
@@ -158,7 +229,6 @@ class LoginApp:
 
         self.user = tk.Entry(frame, width=25, fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 11))
         self.user.place(x=30, y=80)
-        self.user.insert(0, 'Username')
         tk.Frame(frame, width=295, height=2, bg='black').place(x=25, y=107)
 
         self.password = tk.Entry(frame, width=25, fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 11), show="*")
