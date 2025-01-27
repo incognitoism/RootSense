@@ -45,6 +45,12 @@ class SensorGridApp:
             font=("Arial", 12), relief="flat", width=15
         )
         self.auto_node_button.pack(side=tk.RIGHT, padx=10, pady=5)
+        
+        self.scan_button = tk.Button(
+            controls_frame, text="Scan Nodes", command=self.scan_nodes, bg="#007acc", fg="white",
+            font=("Arial", 12), relief="flat", width=15
+        )
+        self.scan_button.pack(side=tk.RIGHT, padx=10, pady=5)
 
         self.logout_button = tk.Button(
             controls_frame, text="Logout", command=self.logout, bg="#ff5e57", fg="white",
@@ -135,6 +141,17 @@ class SensorGridApp:
         self.node_count = 100  
         self.auto_node_frame.destroy()  
         self.call_nodes(self.node_count) 
+        
+        
+   """ def scan_nodes(self): #please check this _________ i am unable to get this to work 
+        def scan_node(index=0):
+            if index >= len(self.nodes):
+                return
+                node = self.nodes[index]
+                self.canvas.itemconfig(node["circle"], fill="green")
+                self.canvas.after(200, lambda: self.update_node(node, "red"))
+                self.canvas.after(300, lambda: scan_node(index + 1))
+                scan_node() """
 
     def call_custom(self):
         def submit_custom_count():
@@ -170,6 +187,7 @@ class SensorGridApp:
         existing_node_count = len(self.nodes)
         for i in range(existing_node_count, count):
             self.add_node()
+            self.node_count_label.config(text=f"Nodes: {len(self.nodes)}")
 
        
 
