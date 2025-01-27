@@ -143,15 +143,17 @@ class SensorGridApp:
         self.call_nodes(self.node_count) 
         
         
-   """ def scan_nodes(self): #please check this _________ i am unable to get this to work 
+    def scan_nodes(self): #please check this _________ i am unable to get this to work - Done
+        print("clicked")
         def scan_node(index=0):
-            if index >= len(self.nodes):
+            print("inside scan_node")
+            if index >= (self.node_count):
                 return
-                node = self.nodes[index]
-                self.canvas.itemconfig(node["circle"], fill="green")
-                self.canvas.after(200, lambda: self.update_node(node, "red"))
-                self.canvas.after(300, lambda: scan_node(index + 1))
-                scan_node() """
+            node = self.nodes[index]
+            self.canvas.itemconfig(node["circle"], fill="green")
+            self.canvas.after(200, lambda: self.update_node(node, "red"))
+            self.canvas.after(300, lambda: scan_node(index + 1))
+        scan_node()
 
     def call_custom(self):
         def submit_custom_count():
